@@ -9,7 +9,12 @@ const io = new Server(server);
 
 var clients: any = [];
 let incr = 1;
+const currentDirectory = __dirname;
+const parentDirectory = path.resolve(currentDirectory, "..");
 
+app.get("/", (req: Request, res: Response) => {
+  res.sendFile(parentDirectory + "/index.html");
+});
 const getUsersList = () => {
   var usersList: any = [];
   for (var i = 0; i < clients.length; i++) {
@@ -17,6 +22,16 @@ const getUsersList = () => {
   }
   return usersList;
 };
+
+const setUserTyping = (index: any) => {
+  var usersList = [];
+  for (var i = 0; i < clients.length; i++) {
+    usersList[i] = clients[i].n;
+  }
+  usersList[index] = "💬 " + clients[index].n;
+  return usersList;
+};
+
 io.on("connection", (socket) => {
   clients.push(socket);
   socket.on("send chat message", (msg) => {
@@ -37,6 +52,14 @@ io.on("connection", (socket) => {
     io.emit("users list", getUsersList()); //console.log(getUsersList());
   });
 
+  socket.on("typing", function () {
+    io.emit("typing signal", setUserTyping(clients.indexOf(socket))); //console.log(setUserTyping(clients.indexOf(socket)));
+  });
+
+  socket.on("not typing", function () {
+    io.emit("typing signal", getUsersList()); //console.log(getUsersList());
+  });
+
   socket.on("disconnect", function () {
     if (clients[clients.indexOf(socket)].n == null) {
       //console.log('Guest disconnect!');
@@ -50,13 +73,6 @@ io.on("connection", (socket) => {
     clients.splice(clients.indexOf(socket), 1); //clientIndex, 1);
     io.emit("users list", getUsersList());
   });
-});
-
-const currentDirectory = __dirname;
-const parentDirectory = path.resolve(currentDirectory, "..");
-
-app.get("/", (req: Request, res: Response) => {
-  res.sendFile(parentDirectory + "/index.html");
 });
 
 server.listen(3000, () => {
