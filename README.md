@@ -1,6 +1,10 @@
 # Chatopia
 
 This is a real-time chat application built using Socket.io, Node.js, Express, and TypeScript. It allows users to join chat rooms, send messages, and see messages from other connected users in real-time.
+## Images
+<img width="960" alt="Socket1" src="https://github.com/SanskarModi22/Chatopia/assets/80542560/f63379c6-72ae-484a-9e78-eaf435b303d4">
+<img width="960" alt="Socket2" src="https://github.com/SanskarModi22/Chatopia/assets/80542560/d678580b-a0d8-4d09-ab76-7260b3e178da">
+<img width="960" alt="Socket3" src="https://github.com/SanskarModi22/Chatopia/assets/80542560/35d557c9-876c-4300-bd2f-8afd7192986e">
 
 ## Features
 
