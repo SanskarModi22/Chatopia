@@ -212,7 +212,12 @@
         });
 
         socket.on("chat message", function(msg) {
-            $("#messages").append("<li><b>" + msg[0] + ":</b> " + msg[1] + "</li>");
+            var listItem = document.createElement("li");
+            var boldElement = document.createElement("b");
+            boldElement.textContent = msg[0] + ": ";
+            listItem.appendChild(boldElement);
+            listItem.appendChild(document.createTextNode(msg[1]));
+            messages.appendChild(listItem);
         });
 
         socket.on("info", function(inf) {
@@ -257,11 +262,13 @@
             }
         }
 
-        $("#boxMessage").on("input", function() {
-            if ($("#boxMessage").val().length != "" && imTyping == false) {
+        var boxMessage = document.getElementById("boxMessage");
+
+        boxMessage.addEventListener("input", function() {
+            if (boxMessage.value.length !== 0 && !imTyping) {
                 socket.emit("typing");
                 imTyping = true;
-            } else if ($("#boxMessage").val() == "") {
+            } else if (boxMessage.value === "") {
                 socket.emit("not typing");
                 imTyping = false;
             }
