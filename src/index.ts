@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 
   socket.on("start", () => {
     console.info("Started.....");
-    io.emit("nick", "guest" + incr);
+    socket.emit("nick", "guest" + incr);
     clients[clients.indexOf(socket)].n = "guest" + incr;
     incr++;
     io.emit("users list", getUsersList());
