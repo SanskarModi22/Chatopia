@@ -6,10 +6,18 @@ import { Server } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-
+var users: any = [];
 io.on("connection", (socket) => {
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
+  });
+
+  socket.on("envia nick", (socket) => {
+    io.emit("info", "New user: " + socket);
+    console.log(socket);
+    users.push(socket);
+    io.emit("users list", users);
+    console.log(users);
   });
 });
 
