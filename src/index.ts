@@ -1,77 +1,80 @@
 import express, { Request, Response } from "express";
 import http from "http";
 import path from "path";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-var clients: any = [];
+interface Client {
+  socket: Socket;
+  name: string;
+}
+
+const clients: Client[] = [];
 let incr = 1;
 const currentDirectory = __dirname;
 const parentDirectory = path.resolve(currentDirectory, "..");
 
 app.get("/", (req: Request, res: Response) => {
-  res.sendFile(parentDirectory + "/index.html");
+  res.sendFile(path.join(parentDirectory, "index.html"));
 });
-const getUsersList = () => {
-  var usersList: any = [];
-  for (var i = 0; i < clients.length; i++) {
-    usersList[i] = clients[i].n;
-  }
+
+const getUsersList = (): string[] => {
+  return clients.map((client) => client.name);
+};
+
+const setUserTyping = (index: number): string[] => {
+  const usersList = [...getUsersList()];
+  usersList[index] = "💬 " + clients[index].name;
   return usersList;
 };
 
-const setUserTyping = (index: any) => {
-  var usersList = [];
-  for (var i = 0; i < clients.length; i++) {
-    usersList[i] = clients[i].n;
-  }
-  usersList[index] = "💬 " + clients[index].n;
-  return usersList;
-};
+io.on("connection", (socket: Socket) => {
+  clients.push({ socket, name: "" });
 
-io.on("connection", (socket) => {
-  clients.push(socket);
-  socket.on("send chat message", (msg) => {
+  socket.on("send chat message", (msg: [string, string]) => {
     io.emit("chat message", msg);
   });
 
   socket.on("start", () => {
     console.info("Started.....");
-    socket.emit("nick", "guest" + incr);
-    clients[clients.indexOf(socket)].n = "guest" + incr;
+    const guestName = "guest" + incr;
+    socket.emit("nick", guestName);
+    clients[clients.findIndex((client) => client.socket === socket)].name =
+      guestName;
     incr++;
     io.emit("users list", getUsersList());
   });
 
-  socket.on("set nick", function (nick) {
-    io.emit("info", "New user: " + nick); //console.log(nick);
-    clients[clients.indexOf(socket)].n = nick; //console.log(clients[clients.indexOf(socket)].n);
-    io.emit("users list", getUsersList()); //console.log(getUsersList());
-  });
-
-  socket.on("typing", function () {
-    io.emit("typing signal", setUserTyping(clients.indexOf(socket))); //console.log(setUserTyping(clients.indexOf(socket)));
-  });
-
-  socket.on("not typing", function () {
-    io.emit("typing signal", getUsersList()); //console.log(getUsersList());
-  });
-
-  socket.on("disconnect", function () {
-    if (clients[clients.indexOf(socket)].n == null) {
-      //console.log('Guest disconnect!');
-    } else {
-      //console.log(clients[clients.indexOf(socket)].n +' disconnect!');
-      io.emit(
-        "info",
-        "User " + clients[clients.indexOf(socket)].n + " disconnected."
-      );
-    }
-    clients.splice(clients.indexOf(socket), 1); //clientIndex, 1);
+  socket.on("set nick", (nick: string) => {
+    io.emit("info", "New user: " + nick);
+    clients[clients.findIndex((client) => client.socket === socket)].name =
+      nick;
     io.emit("users list", getUsersList());
+  });
+
+  socket.on("typing", () => {
+    io.emit(
+      "typing signal",
+      setUserTyping(clients.findIndex((client) => client.socket === socket))
+    );
+  });
+
+  socket.on("not typing", () => {
+    io.emit("typing signal", getUsersList());
+  });
+
+  socket.on("disconnect", () => {
+    const client = clients.find((client) => client.socket === socket);
+    if (client) {
+      if (client.name) {
+        io.emit("info", "User " + client.name + " disconnected.");
+      }
+      clients.splice(clients.indexOf(client), 1);
+      io.emit("users list", getUsersList());
+    }
   });
 });
 
