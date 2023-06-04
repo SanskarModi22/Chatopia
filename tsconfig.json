@@ -4,8 +4,9 @@
         "moduleResolution": "node",
         "baseUrl": "src",
         "outDir": "dist",
+        "rootDir": "src",
         "sourceMap": true,
         "noImplicitAny": true
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*", "dist/index.js"]
 }
