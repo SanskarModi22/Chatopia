@@ -1,16 +1,23 @@
-import express,{Request,Response} from "express";
+import express, { Request, Response } from "express";
 import http from "http";
+import path from 'path';
+import { Server } from "socket.io";
+
 const app = express();
 const server = http.createServer(app);
-import path from 'path';
+const io = new Server(server);
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+});
 
 const currentDirectory = __dirname;
 const parentDirectory = path.resolve(currentDirectory, '..');
 
-app.get('/', (req:Request, res:Response) => {
-    res.sendFile(parentDirectory + '/index.html');
-  });
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(parentDirectory + '/index.html');
+});
 
-server.listen(3000,()=>{
-    console.log('listening on *:3000');
-})
+server.listen(3000, () => {
+  console.log('listening on *:3000');
+});
